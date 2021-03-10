@@ -1,7 +1,7 @@
 from flask import Flask
 from threading import Thread
 
-app = Flask('')
+app = Flask('Ultimate Embed Bot')
 
 @app.route('/')
 def home():

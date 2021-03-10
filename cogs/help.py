@@ -1,111 +1,182 @@
-import discord
-from discord.ext import commands
-from helpcmd import Helpcmd
+from discord.ext.commands import Cog
+from discord.ext.commands import command
+from discord.utils import get
 from errorembed import ErrorEmbed
-from cogembed import CogEmbed
+from discord import Embed
+import discord
+import json
+from typing import Optional
+import datetime
+import random
+from discord.ext import commands
+from utilities.utility import Pag
 
-class Help(commands.Cog):
+def get_prefix(ctx):
+  with open("prefixes.json", 'r') as f:
+    prefixes = json.load(f)
+  return prefixes[str(ctx.guild.id)]
+
+def syntax(command):
+  cmd_and_aliases = "|".join([str(command), *command.aliases])
+  params = []
+
+  for key, value in command.params.items():
+    if key not in ("self", "ctx"):
+      params.append(f"[{key}]" if "NoneType" in str(value) else f"<{key}>")
+
+  params = " ".join(params)
+
+  return f"```{cmd_and_aliases} {params}```"
+
+class Help(Cog):
   def __init__(self, client):
     self.client = client
     self.client.remove_command("help")
+    self.cmds_per_page = 6
 
-  @commands.command()
-  async def help(self, ctx, command : str = None):
-    if command == None:
-      embed = discord.Embed(
-        title = "Help",
-        description = "Use <prefix>help <command> for extended information on a command.",
-        color = discord.Color.green()
+  async def cmd_help(self, ctx, command):
+      embed = Embed(
+        title = f"Help with `{command}`",
+        description = syntax(command),
+        color = 0x5f10a3,
+        timestamp = datetime.datetime.utcnow()
       )
-      embed.add_field(name = "**General commands**", value = "cogs, colors, decimaltorgb, embed, help, ping, poll, rgbtodecimal")
-      embed.add_field(name = "**Admin-only commands**", value = "prefix")
-      embed.add_field(name = "**Bot Dev-only commands**", value = "load, reload, unload")
-      embed.set_footer(text = "Help :^)")
-      await ctx.send(embed=embed)
+      embed.add_field(name="Command Description", value = command.help)
+      msg = await ctx.send(embed=embed)
+      await msg.add_reaction("👀")
 
-    elif command.lower() == "cogs":
-      embed = Helpcmd.embed("cogs", "Lists the bot's cogs and whether they are loaded or unloaded.", "listcogs, lc, botcogs", "general", "main (not an extension)")
-      await ctx.send(embed=embed)
+  async def return_filtered_commands(self, walkable, ctx):
+    filtered = []
 
-    elif command.lower() == "colors":
-      embed = Helpcmd.embed("colors", "Shows the color names and the decimal values for those colors.  Helpful for deciding what color you want to make your embed. Specify a page number after **colors** to see another page of color options.", "none", "general", "colorlist")
-      await ctx.send(embed=embed)
-    
-    elif command.lower() == "decimaltorgb":
-      embed = Helpcmd.embed("decimaltorgb", "A color conversion calculator for your decimal color value into RGB format. Very useful because the embed command takes in the three RGB components (red, green and blue) (separated) when asking for a color.", "dec2rgb, dectrgb, d2rgb", "general", "colorcalc")
-      await ctx.send(embed=embed)
+    for c in walkable.walk_commands():
+      try:
+        if c.hidden:
+          continue
 
-    elif command.lower() == "embed":
-      embed = Helpcmd.embed("embed", "The main command for making and sending an embed to the channel of your choice.", "none", "general", "main (not an extension)")
-      await ctx.send(embed=embed)
+        elif c.parent:
+          continue
 
-    elif command.lower() == "ping":
-      embed = Helpcmd.embed("ping", "Returns the client's latency.", "none", "general", "ping")
-      await ctx.send(embed=embed)
+        await c.can_run(ctx)
+        filtered.append(c)
+      except commands.CommandError:
+        continue
 
-    elif command.lower() == "rgbtodecimal":
-      embed = Helpcmd.embed("rgbtodecimal", "A color conversion calculator for your RGB color value into decimal format. The opposite of the **decimaltorgb** command.", "rgbtdec, rgb2dec,rgb2d", "general", "colorcalc")
-      await ctx.send(embed=embed)
+    return self.return_sorted_commands(filtered)
 
-    elif command.lower() == "load":
-      embed = Helpcmd.embed("load", "Loads the specified extension. **ONLY FOR BOT DEV**", "none", "**Dev-only**", "main (not an extension)")
-      await ctx.send(embed=embed)
+  def return_sorted_commands(self, commandList):
+    return sorted(commandList, key=lambda x: x.name)
 
-    elif command.lower() == "prefix":
-      embed = Helpcmd.embed("prefix", "Change server prefix.", "none", "**Admin-only**", "main (not an extension)")
-      await ctx.send(embed=embed)
+  def get_command_signature(self, command: commands.Command, ctx: commands.Context):
+    aliases = "|".join(command.aliases)
+    cmd_invoke = f"[{command.name}|{aliases}]" if command.aliases else command.name
 
-    elif command.lower() == "reload":
-      embed = Helpcmd.embed("reload", "Reloads the specified extension. **ONLY FOR BOT DEV**", "none", "**Dev-only**", "main (not an extension)")
-      await ctx.send(embed=embed)
+    full_invoke = command.qualified_name.replace(command.name, "")
 
-    elif command.lower() == "unload":
-      embed = Helpcmd.embed("unload", "Reloads the specified extension. **ONLY FOR BOT DEV**", "none", "**Dev-only**", "main (not an extension)")
-      await ctx.send(embed=embed)
+    signature = f"{ctx.prefix}{full_invoke}{cmd_invoke} {command.signature}"
 
-    elif command.lower() == "poll":
-      embed = Helpcmd.embed("poll", "Send a poll to a channel of your choice.", "none", "general", "poll")
-      await ctx.send(embed=embed)
-    
-    elif command.lower() == "coglist":
-      embed = CogEmbed.embed(command, "cogs")
-      await ctx.send(embed=embed)
+    return signature
 
-    elif command.lower() == "colorcalc":
-      embed = CogEmbed.embed(command, "decimaltorgb, rgbtodecimal")
-      await ctx.send(embed=embed)
+  async def setup_help_pag(self, ctx, entity=None, title=None):
+    entity = entity or self.client
+    title = title or self.client.description
 
-    elif command.lower() == "colorlist":
-      embed = CogEmbed.embed(command, "colors")
-      await ctx.send(embed=embed)
-    
-    elif command.lower() == "embed":
-      embed = CogEmbed.embed(command, "embed")
-      await ctx.send(embed=embed)
+    pages = []
 
-    elif command.lower() == "events":
-      embed = CogEmbed.embed(command, "No commands.  This is just a cog for client events.")
-      await ctx.send(embed=embed)
+    if isinstance(entity, commands.Command):
+      filtered_commands = (
+        list(set(entity.all_commands.values()))
+        if hasattr(entity, "all_commands")
+        else []
+      )
 
-    elif command.lower() == "help":
-      embed = CogEmbed.embed(command, "help")
-      await ctx.send(embed=embed)
-
-    elif command.lower() == "ping":
-      embed = CogEmbed.embed(command, "ping")
-      await ctx.send(embed=embed)
-
-    elif command.lower() == "poll":
-      embed = CogEmbed.embed(command, "poll")
-      await ctx.send(embed=embed)
-
-    elif command.lower() == "prefix":
-      embed = CogEmbed.embed(command, "prefix")
-      await ctx.send(embed=embed)
-    
     else:
-      embed = ErrorEmbed.error("Invalid Command", "The command you provided didn't exist.  Make sure you are not using aliases.")
-      await ctx.send(embed=embed)
+      filtered_commands = await self.return_filtered_commands(entity, ctx)
+
+    for i in range(0, len(filtered_commands), self.cmds_per_page):
+      next_commands = filtered_commands[i : i + self.cmds_per_page]
+      commands_entry = ""
+
+      for cmd in next_commands:
+        desc = cmd.short_doc or cmd.description
+        signature = self.get_command_signature(cmd, ctx)
+        subcommand = "Has subcommands" if hasattr(cmd, "all_commands") else ""
+
+        commands_entry += (
+          f"• **__{cmd.name}__**\n```\n{signature}\n```\n{desc}\n"
+          if isinstance(entity, commands.Command)
+          else f"• **__{cmd.name}__**\n{desc}\n    {subcommand}\n"
+        )
+
+      pages.append(commands_entry)
+
+    await Pag(title = title, color = 0x5f10a3, entries = pages, length = 1).start(ctx)
+
+  @command()
+  async def commands(self, ctx, *, entity=None):
+    """Shows a neat, paginated embed for all of the bot commands.  Updates automatically."""
+    if not entity:
+      await self.setup_help_pag(ctx)
+
+  @command()
+  async def help(self, ctx, cmd: Optional[str]):
+    """Shows the help embed.  Requires a command to be passed in to get help on that command."""
+    if cmd is None:
+      with open("commands.txt", "r") as f:
+        lines = f.readlines()
+
+      embed = discord.Embed(
+        title = "Command list for Ultimate Embed Bot",
+        description = f"**{lines[0]}**\n{lines[1]}\n**{lines[2]}**\n{lines[3]}\n**{lines[4]}**\n{lines[5]}\n**{lines[6]}**\n{lines[7]}\n\nType **{get_prefix(ctx)}<command>** for more info on a command.",
+        color = 0x5f10a3,
+        timestamp = datetime.datetime.utcnow()
+      )
+      embed.set_footer(text=f"Consider doing {ctx.prefix}commands to see a neater, paginated version of them?")
+      msg = await ctx.send(embed=embed)
+      await msg.add_reaction("👀")
+    else:
+      if (command := get(self.client.commands, name=cmd)):
+        await self.cmd_help(ctx, command)
+
+      else:
+        embed = ErrorEmbed.error("Invalid Command", "That command doesn't exist!  Make sure you are not specifying the aliases of the command, because the command won't register them as allowed arguments.")
+        embed.add_field(name = "**Syntax help**", value = "<> (Required argument) | [] (Optional argument)  Aliases are separated by a **|**")
+        await ctx.send(embed=embed)
+  
+  @command()
+  async def info(self, ctx):
+    """The information embed that shows links to the Ultimate Embed Bot Quickstart Guide."""
+    embed = discord.Embed(
+      title = "Embed Bot Quickstart Guide",
+      description = f"To get a full guide on {self.client.user.mention}, click on the link below!",
+      color = 0x5f10a3,
+      timestamp = datetime.datetime.utcnow()
+    )
+    embed.add_field(name = "Quickstart Guide (Google Doc)", value="https://docs.google.com/document/d/15baZOP4Ed_qkOGApHGX8h8IUdQPcqpPfjGnChtykBwQ/edit?usp=sharing", inline=False)
+    embed.add_field(name = "Quickstart Guide (PDF Download)", value="https://drive.google.com/file/d/1qf3SAd_Io5oA5Gx2nSmoImqLYEVXrwNG/view", inline=False)
+    msg = await ctx.send(embed=embed)
+    try:
+      await ctx.author.send(embed=embed)
+    except:
+      pass
+    await msg.add_reaction("🏁")
+  
+  @command(aliases = ['website', 'site'])
+  async def support(self, ctx):
+    """Gives the link to the bot website."""
+    embed = discord.Embed(
+      title = "Ultimate Embed Bot Website",
+      description = "Go here to get more information about the bot!",
+      color = 0x5f10a3,
+      timestamp = datetime.datetime.utcnow()
+    )
+    embed.add_field(name = "Website", value = "https://embedbot.weebly.com/", inline = False)
+    msg = await ctx.send(embed=embed)
+    await msg.add_reaction("👀")
+    try:
+      msg = await ctx.author.send(embed=embed)
+      await msg.add_reaction("👀")
+    except:
+      pass
 
 def setup(client):
   client.add_cog(Help(client))

@@ -2,16 +2,20 @@ import discord
 from discord.ext import commands
 import os
 import json
+import datetime
+import random
 
 class Coglist(commands.Cog):
   def __init__(self, client):
     self.client = client
 
-  @commands.command(aliases=['listcogs', 'lc','botcogs', 'coglist'])
+  @commands.command(description = "Get the list of the bot's cogs.", aliases=['listcogs', 'lc','botcogs', 'coglist', 'extensions'])
   async def cogs(self, ctx):
+    """Lists the bot's cogs."""
     embed = discord.Embed(
       title = "Bot Cogs",
-      color = discord.Color.green()
+      color = 0x5f10a3,
+      timestamp = datetime.datetime.utcnow()
     )
     embed.set_author(name = "Cog Manager")
     for filename in os.listdir('./cogs'):
@@ -20,7 +24,8 @@ class Coglist(commands.Cog):
           cog = json.load(f)
         embed.add_field(name = f" - {filename[:-3]} -", value = f"Status: {cog[str(filename[:-3])]}")
     
-    await ctx.send(embed=embed)
+    msg = await ctx.send(embed=embed)
+    await msg.add_reaction("⚙️")
 
 def setup(client):
   client.add_cog(Coglist(client))
