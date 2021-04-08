@@ -3,7 +3,6 @@ from discord.ext import commands
 import os
 import json
 import datetime
-import random
 
 class Coglist(commands.Cog):
   def __init__(self, client):
@@ -23,6 +22,7 @@ class Coglist(commands.Cog):
         with open("cogstatus.json", 'r') as f:
           cog = json.load(f)
         embed.add_field(name = f" - {filename[:-3]} -", value = f"Status: {cog[str(filename[:-3])]}")
+    embed.add_field(name=f"**Real** Extension Names (for use in the *help* command, ex. {ctx.prefix}help Colorcalc)", value = "***Coglist***, ***Colorcalc***, ***Colorlist***, ***CooldownCommands***, ***Embed***, ***Events***, ***Fun***, ***Help***, ***Image***, ***Invite***, ***Logout***, ***Minecraft***, ***OnThisDay***, ***Poll***, ***Stats***, ***Tools***, ***Vote***", inline=False)
     
     msg = await ctx.send(embed=embed)
     await msg.add_reaction("⚙️")

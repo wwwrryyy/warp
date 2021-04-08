@@ -7,7 +7,6 @@ import discord
 import json
 from typing import Optional
 import datetime
-import random
 from discord.ext import commands
 from utilities.utility import Pag
 
@@ -88,6 +87,7 @@ class Help(Cog):
         if hasattr(entity, "all_commands")
         else []
       )
+      filtered_commands.insert(0, entity)
 
     else:
       filtered_commands = await self.return_filtered_commands(entity, ctx)
@@ -111,14 +111,27 @@ class Help(Cog):
 
     await Pag(title = title, color = 0x5f10a3, entries = pages, length = 1).start(ctx)
 
-  @command()
-  async def commands(self, ctx, *, entity=None):
-    """Shows a neat, paginated embed for all of the bot commands.  Updates automatically."""
+  @command(aliases=['commands', 'cmd', 'command', 'cmds', 'cmdlist', 'commandlist'])
+  async def help(self, ctx, *, entity=None):
+    """Shows a neat, paginated embed for all of the bot commands.  Updates automatically.  Getting help for a specific cog requires the name of the class, not the name of the file."""
     if not entity:
       await self.setup_help_pag(ctx)
+    else:
+      cog = self.client.get_cog(entity)
 
-  @command()
-  async def help(self, ctx, cmd: Optional[str]):
+      if cog:
+        await self.setup_help_pag(ctx, cog, f"**{cog.qualified_name}**'s Commands")
+      else:
+        command = self.client.get_command(entity)
+        if command:
+          await self.setup_help_pag(ctx, command, command.name)
+
+        else:
+          embed = ErrorEmbed.error("Invalid Command Arguments", "That command/cog doesn't exist!")
+          await ctx.send(embed=embed)
+
+  @command(hiddem=True)
+  async def helpold(self, ctx, cmd: Optional[str]):
     """Shows the help embed.  Requires a command to be passed in to get help on that command."""
     if cmd is None:
       with open("commands.txt", "r") as f:
@@ -126,7 +139,7 @@ class Help(Cog):
 
       embed = discord.Embed(
         title = "Command list for Ultimate Embed Bot",
-        description = f"**{lines[0]}**\n{lines[1]}\n**{lines[2]}**\n{lines[3]}\n**{lines[4]}**\n{lines[5]}\n**{lines[6]}**\n{lines[7]}\n\nType **{get_prefix(ctx)}<command>** for more info on a command.",
+        description = f"**{lines[0]}**\n{lines[1]}\n**{lines[2]}**\n{lines[3]}\n**{lines[4]}**\n{lines[5]}\n**{lines[6]}**\n{lines[7]}\n\nType **{get_prefix(ctx)}help <command>** or **{get_prefix(ctx)}commands <command>** for more info on a command.",
         color = 0x5f10a3,
         timestamp = datetime.datetime.utcnow()
       )
@@ -136,6 +149,17 @@ class Help(Cog):
     else:
       if (command := get(self.client.commands, name=cmd)):
         await self.cmd_help(ctx, command)
+
+      elif cmd.lower() == "cog" or "extension" or "extensions":
+        embed = discord.Embed(
+          title = "Cog list for Ultimate Embed Bot",
+          description = f"**Coglist, Colorcalc, Colorlist, CooldownCommands, Counting, Embed, Events, Fun, Help, Invite, Logout, OnThisDay, Ping, Poll, ServerStats, Utils**\n\nType **{get_prefix(ctx)}commands <cog>** for more info on a cog.",
+          color = 0x5f10a3,
+          timestamp = datetime.datetime.utcnow()
+        )
+        embed.set_footer(text=f"Consider doing {ctx.prefix}commands to see a neater, paginated version of them?")
+        msg = await ctx.send(embed=embed)
+        await msg.add_reaction("👀")
 
       else:
         embed = ErrorEmbed.error("Invalid Command", "That command doesn't exist!  Make sure you are not specifying the aliases of the command, because the command won't register them as allowed arguments.")
@@ -164,12 +188,14 @@ class Help(Cog):
   async def support(self, ctx):
     """Gives the link to the bot website."""
     embed = discord.Embed(
-      title = "Ultimate Embed Bot Website",
-      description = "Go here to get more information about the bot!",
+      title = "Ultimate Embed Bot Support",
+      description = "Here are links to the bot website, status page, and support server!",
       color = 0x5f10a3,
       timestamp = datetime.datetime.utcnow()
     )
     embed.add_field(name = "Website", value = "https://embedbot.weebly.com/", inline = False)
+    embed.add_field(name = "Status Page", value = "https://embedbot.gq", inline=False)
+    embed.add_field(name = "Support Server", value = "https://discord.gg/chTd8uXRrE", inline=False)
     msg = await ctx.send(embed=embed)
     await msg.add_reaction("👀")
     try:

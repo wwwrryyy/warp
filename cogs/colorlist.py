@@ -9,8 +9,9 @@ class Colorlist(commands.Cog):
     self.client = client
 
   @commands.command(description = "Get the list of colors that the bot can take in through an embed.")
-  async def colors(self, ctx, page : int = None):
+  async def colors(self, ctx, page = None):
     """Get the list of colors that the bot can take in through an embed."""
+    page = int(page)
     if page == None:
       embed = ErrorEmbed.error("Missing Command Arguments", "You didn't provide a valid  page number.  Provide a page number between 1 and 5.")
       await ctx.send(embed=embed)
@@ -87,9 +88,9 @@ class Colorlist(commands.Cog):
       msg = await ctx.send(embed=embed)
       await msg.add_reaction("🟢")
 
-    elif page > 5:
+    else:
       embed = ErrorEmbed.error("Command Invocation Error", "That page does not exist for the **colors** command.")
-      await ctx.send(embed)
+      await ctx.send(embed=embed)
 
 def setup(client):
   client.add_cog(Colorlist(client))

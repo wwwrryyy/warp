@@ -1,7 +1,9 @@
 import discord
 from discord.ext import commands
+from discord.ext.commands import cooldown, BucketType
 import datetime
-import random
+from errorembed import ErrorEmbed
+from successembed import SuccessEmbed
 
 class Invite(commands.Cog):
   def __init__(self, client):
@@ -22,6 +24,34 @@ class Invite(commands.Cog):
       await ctx.author.send(embed=embed)
     except:
       pass
+
+  @commands.command(aliases=['createinvite', 'ci', 'mi', 'generateinvite', 'gi'])
+  @cooldown(1, 30, BucketType.user)
+  async def makeinvite(self, ctx, channel = None, max_age=0, max_uses=0, temporary=False, *, reason=None):
+    """Make an invite for the current channel (if none is specified).  Takes in max_age (int, days), max_uses (int), temporary membership (True/False), and a reason for creation.  Cooldown: 30 seconds"""
+    if ctx.author.guild_permissions.create_instant_invite:
+      try:
+        if not channel:
+          channel = ctx.channel.mention
+        try:
+          c_id = int(channel[2:-1])
+        except:
+          embed = ErrorEmbed.error("Invalid Embed Value(s)", f"You didn't mention a channel properly! Do it like this {ctx.channel.mention} next time.")
+          await ctx.send(embed=embed)
+          return
+        chnl = self.client.get_channel(c_id)
+        if not chnl:
+          chnl = ctx.channel
+        inv = await chnl.create_invite(max_age=max_age, max_uses=max_uses, temporary=temporary, reason=reason)
+        embed = SuccessEmbed.success("Invite Creation Successful", f"Your invite was created!  Check it out here: {inv}")
+        await ctx.send(embed=embed)
+      except:
+        embed = ErrorEmbed.error("Invite Creation Failed", "Please check to make sure your values are valid. (**max_age** and **max_uses** should be an int >= 0, **temporary** should be True or False, and **reason** should be a str.")
+        await ctx.send(embed=embed)
+
+    else:
+      embed = ErrorEmbed.error("Missing Permissions", "You need the **Create Instant Invite** permission to run that command.")
+      await ctx.send(embed=embed)
 
 def setup(client):
   client.add_cog(Invite(client))

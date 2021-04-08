@@ -5,8 +5,6 @@ import subprocess
 import discord
 import datetime
 from utilities.utility import Pag
-import time
-import random
 
 class Utils(commands.Cog):
   def __init__(self, client):
@@ -15,7 +13,7 @@ class Utils(commands.Cog):
   # Bash commands
   @commands.command(aliases = ['bash', 'console'])
   async def os(self, ctx, show_complete_output="false", *bash_command):
-    """Runs a bash command directly in the project console and returns the full output if the user states 'true' for the first argument. Also, if the user states true, the successful execution embed is deleted and overridden by the command output pager. If the user states anything else, the successful execution embed is NOT deleted, but the full output of the command is **NOT** shown."""
+    """(Dev-only) Runs a bash command directly in the project console and returns the full output if the user states 'true' for the first argument. Also, if the user states true, the successful execution embed is deleted and overridden by the command output pager. If the user states anything else, the successful execution embed is NOT deleted, but the full output of the command is **NOT** shown."""
     if ctx.author.guild_permissions.administrator and ctx.author.id == 642550830074953758:
       try:
         embed = discord.Embed(
@@ -61,20 +59,34 @@ class Utils(commands.Cog):
       await ctx.send(embed=embed)
 
   # Work on change presence command and put here
+  @commands.command()
+  async def presence(self, ctx, *, presence):
+    """A dev-only command that allows a quick presence change of the bot."""
+    if ctx.author.guild_permissions.administrator and ctx.author.id == 642550830074953758:
+      await self.client.change_presence(status=discord.Status.online, activity=discord.Game(presence))
+      embed = SuccessEmbed.success("Successful Presence Change", f"Presence changed to {presence}")
+      await ctx.send(embed=embed)
+    else:
+      embed = ErrorEmbed.error("Permission Error", "You are not the bot developer, and you don't have the permission of **Administrator**.")
+      await ctx.send(embed=embed)
 
   # End of Change presence
 
   @commands.command(aliases = ['purge', 'deletemessages', 'delmessages', 'remove'])
   async def clear(self, ctx, messages=1):
     """A utility command for people with the permission of **Manage Messages** associated with their role.  Default message remove count is 1 message."""
-    if ctx.author.guild_permissions.manage_messages:
-      await ctx.message.delete()
-      await ctx.channel.purge(limit=messages)
-      embed = SuccessEmbed.success("Success!", f"{messages} messages removed from {ctx.channel.mention}.")
-      await ctx.send(embed=embed)
+    try:
+      if ctx.author.guild_permissions.manage_messages:
+        await ctx.message.delete()
+        await ctx.channel.purge(limit=messages)
+        embed = SuccessEmbed.success("Success!", f"{messages} messages removed from {ctx.channel.mention}.")
+        await ctx.send(embed=embed)
 
-    else:
-      embed = ErrorEmbed.error("Missing Permissions", "You need the permission of **Manage Messages** to run that command.")
+      else:
+        embed = ErrorEmbed.error("Missing Permissions", "You need the permission of **Manage Messages** to run that command.")
+        await ctx.send(embed=embed)
+    except:
+      embed = ErrorEmbed.error("Failed Message Purge", "Either I was not invited with the permission of **Manage Messages**, or someome took that permission away from me.  Also, make sure this channel allows access of mine, and allows me to manage this channel.")
       await ctx.send(embed=embed)
 
 def setup(client):

@@ -59,9 +59,9 @@ class Embed(commands.Cog):
     self.client = client
 
   @commands.command(description = "The embed command, where you make your own embed, and then send it to the channel of your choice!")
-  @cooldown(1, 60, BucketType.user)
+  @cooldown(1, 15, BucketType.user)
   async def embed(self, ctx):
-    """The embed command, where you make your own embed, and then send it to the channel of your choice!"""
+    """The embed command, where you make your own embed, and then send it to the channel of your choice!  Cooldown: 15 seconds"""
     await ctx.send("Let's make this embed! Answer the questions within 60 seconds.")
 
     questions = ["What channel should the embed be sent to?",

@@ -8,17 +8,13 @@
     "help": "loaded",
     "stats": "loaded",
     "logout": "loaded",
-    "CooldownCommands": "loaded",
     "poll": "loaded",
     "cooldowns": "loaded",
-    "os": "loaded",
-    "utils": "loaded",
-    "server_management": "loaded",
-    "settings": "loaded",
-    "counting": "loaded",
-    "jokes": "loaded",
     "invite": "loaded",
     "tools": "loaded",
     "fun": "loaded",
-    "onthisday": "loaded"
+    "onthisday": "loaded",
+    "minecraft": "loaded",
+    "vote": "loaded",
+    "image": "loaded"
 }

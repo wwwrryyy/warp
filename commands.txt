@@ -1,8 +1,8 @@
-General Commands
-cogs, colors, commands, decimaltorgb, embed, feedback, invite, ping, poll, rgbtodecimal, suggest, help, stats
-Fun Commands
-cstart (Broken for some reason), joke, meme, onthisday, submitjoke, slots
-Mod/Admin Commands
-clear, prefix (working on kick, ban, and unban)
-Dev-only Commands
-eval (buggy), load,  logout, os, reload, relog, unload
+•__General Commands__
+cogs, colors, commands, decimaltorgb, embed, feedback, invite, createinvite, ping, poll, rgbtodecimal, suggest, help, stats
+•__Fun Commands__
+joke, meme, onthisday, slots, 8ball, owo, cat, dog
+•__Mod/Admin Commands__
+clear, prefix
+•__Dev-only Commands__
+eval, load,  logout, os, reload, relog, unload

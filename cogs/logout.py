@@ -1,15 +1,13 @@
-import discord
 from discord.ext import commands
 from successembed import SuccessEmbed
 from errorembed import ErrorEmbed
-import datetime
 import os
 
 class Logout(commands.Cog):
   def __init__(self, client):
     self.client = client
 
-  @commands.command(description = "Logs the bot out.", aliases = ['kill', 'quit'],hidden = True)
+  @commands.command(description = "Logs the bot out.", aliases = ['quit'],hidden = True)
   async def logout(self, ctx):
     """An emergency reset command ONLY for the Bot Dev.  Completely logs out the bot and disconnects it from Discord."""
     if ctx.author.guild_permissions.administrator and ctx.author.id == 642550830074953758:

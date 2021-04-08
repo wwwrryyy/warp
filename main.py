@@ -1,11 +1,7 @@
 import discord
 from discord.ext import commands, tasks
-from server import bot_server
 from errorembed import ErrorEmbed
-from successembed import SuccessEmbed
-from helpcmd import Helpcmd
 import os
-import asyncio
 import json
 from utilities.utility import clean_code
 import contextlib
@@ -14,7 +10,6 @@ import textwrap
 from traceback import format_exception
 from utilities.utility import Pag
 import datetime
-import random
 
 os.system("pip install buttons")
 
@@ -25,7 +20,10 @@ def get_prefix(client, message):
   return prefixes[str(message.guild.id)]
 
 # Define Client
-client = commands.Bot(command_prefix = get_prefix, intents = discord.Intents.all())
+client = commands.Bot(command_prefix = get_prefix, intents = discord.Intents.all(), description = "Ultimate Embed Bot - A utility bot for making and sending quick embeds.")
+
+serverCount = len(client.guilds)
+memberCount = len(set(client.get_all_members()))
 
 @tasks.loop(seconds=60)
 async def re_install_buttons():
@@ -42,46 +40,50 @@ async def evaltemplate(ctx):
   await ctx.send("eb.eval ```python\n\n```")
 
 @client.command(name="eval", aliases=["exec", "e", "evaluate", "execute"])
-async def _eval(ctx, *, code):
+async def _eval(ctx, *, code=None):
   """A dev-only command to execute Python code using Discord messages."""
   if ctx.author.guild_permissions.administrator and ctx.author.id == 642550830074953758:
-    code = clean_code(code)
-    
-    local_variables = {
-      "discord": discord,
-      "commands": commands,
-      "client": client,
-      "ctx": ctx,
-      "channel": ctx.channel,
-      "author": ctx.author,
-      "guild": ctx.guild,
-      "message": ctx.message 
-    }
+    if code == None:
+      embed = ErrorEmbed.error("Missing Command Arguments", "My good sir, you must provide some code to evaluate!")
+      await ctx.send(embed=embed)
+    else:
+      code = clean_code(code)
+      
+      local_variables = {
+        "discord": discord,
+        "commands": commands,
+        "client": client,
+        "ctx": ctx,
+        "channel": ctx.channel,
+        "author": ctx.author,
+        "guild": ctx.guild,
+        "message": ctx.message 
+      }
 
-    stdout = io.StringIO()
+      stdout = io.StringIO()
 
-    try:
-      with contextlib.redirect_stdout(stdout):
-        exec(
-          f"async def func():\n{textwrap.indent(code, '    ')}", local_variables
-        )
+      try:
+        with contextlib.redirect_stdout(stdout):
+          exec(
+            f"async def func():\n{textwrap.indent(code, '    ')}", local_variables
+          )
 
-        obj = await local_variables["func"]()
+          obj = await local_variables["func"]()
 
-        result = f"{stdout.getvalue()}\n-- {obj}\n"
+          result = f"{stdout.getvalue()}\n-- {obj}\n"
 
-    except Exception as e:
-      result = "".join(format_exception(e, e, e.__traceback__))
+      except Exception as e:
+        result = "".join(format_exception(e, e, e.__traceback__))
 
-    pager = Pag(
-      timeout = 100,
-      entries=[result[i: i + 2000] for i in range(0, len(result), 2000)],
-      length=1,
-      prefix = "```py",
-      suffix = "```"
-    )
+      pager = Pag(
+        timeout = 100,
+        entries=[result[i: i + 2000] for i in range(0, len(result), 2000)],
+        length=1,
+        prefix = "```py",
+        suffix = "```"
+      )
 
-    await pager.start(ctx)
+      await pager.start(ctx)
     
 
   else:
@@ -246,5 +248,8 @@ for filename in os.listdir('./cogs'):
     with open('cogstatus.json', 'w') as f:
       json.dump(cog, f, indent=4)
 
+from server import bot_server
+
 bot_server()
+
 client.run(os.getenv('TOKEN'))

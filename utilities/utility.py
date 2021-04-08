@@ -1,5 +1,5 @@
-from discord.ext.buttons import Paginator
 import discord
+from discord.ext.buttons import Paginator
 
 class Pag(Paginator):
   async def teardown(self):
@@ -10,6 +10,6 @@ class Pag(Paginator):
 
 def clean_code(content):
   if content.startswith("```") and content.endswith("```"):
-    return "\n".join(content.split("\n")[1:])[:-3]
-  else:
-    return content
+    return "\n".join(content.split("\n")[1:][:-3])
+
+  return content
