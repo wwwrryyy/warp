@@ -1,5 +1,5 @@
-./__pycache__
-.env
-prefixes.json
-cogstatus.json
-commands.txt
+__pycache__/
+.env/
+prefixes.json/
+cogstatus.json/
+commands.txt/
