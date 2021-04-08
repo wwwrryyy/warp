@@ -1,5 +1,3 @@
-__pycache__/
-.env/
-prefixes.json/
-cogstatus.json/
-commands.txt/
+*.pyc
+pyproject.toml
+poetry.lock
