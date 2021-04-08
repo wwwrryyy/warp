@@ -7,6 +7,14 @@ app = Flask('Ultimate Embed Bot')
 def home():
     return render_template("statpage.html")
 
+@app.route('/helpful-tutorials-channels')
+def tutorials():
+  return render_template("tutorials.html")
+
+@app.route('/thanks')
+def thanks():
+  return render_template("thanks.html")
+
 def run():
   app.run(host='0.0.0.0',port=8080)
 

@@ -1,0 +1,5 @@
+./__pycache__
+.env
+prefixes.json
+cogstatus.json
+commands.txt
