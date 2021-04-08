@@ -1,0 +1,7 @@
+discord
+discord.py
+buttons
+utils
+discord-ext-menus
+flask
+lenny
