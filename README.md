@@ -9,7 +9,7 @@
 =======================
 
 ## Bot Invite Link:
-#### [Invite Here](https://discord.com/api/oauth2/authorize?client_id=811395374798340116&permissions=519399&scope=bot)
+#### [Invite Here](https://discord.com/api/oauth2/authorize?client_id=811395374798340116&permissions=201845991&redirect_uri=https%3A%2F%2Fembedbot.weebly.com&scope=bot)
 
 =======================
 
