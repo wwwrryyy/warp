@@ -1,0 +1,22 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Cpython bytecode in subdirectories
+cogs/__pycache__/
+utilities/__pycache__/
+
+# Environments and secrets
+.env
+venv/
+env/
+ENV/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Dynamic bot runtime files
+feedback.txt
+*.log
